@@ -549,7 +549,13 @@ class Extends
     'FluicsLabelTemplate' => 'Fluics'
   }
 
-  EXTERNAL_SERVICES = %w(https://www.protocols.io/ http://127.0.0.1:9100/available)
+  EXTERNAL_SERVICES = %w(
+    https://www.protocols.io/
+    http://127.0.0.1:9100/available
+    https://marvinjs.chemicalize.com/
+    newrelic.com
+    *.newrelic.com
+  )
 end
 
 # rubocop:enable Style/MutableConstant

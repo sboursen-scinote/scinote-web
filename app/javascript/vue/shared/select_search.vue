@@ -1,5 +1,16 @@
 <template>
-  <Select class="sn-select--search" :options="currentOptions" :placeholder="placeholder" @change="change" @blur="blur" @open="open" @close="close">
+  <Select
+    class="sn-select--search"
+    :value="value"
+    :options="currentOptions"
+    :placeholder="placeholder"
+    :noOptionsPlaceholder="noOptionsPlaceholder"
+    v-bind:disabled="disabled"
+    @change="change"
+    @blur="blur"
+    @open="open"
+    @close="close"
+  >
     <input ref="focusElement" v-model="query" type="text" class="sn-select__search-input" :placeholder="searchPlaceholder" />
     <span class="sn-select__value">{{ valueLabel || (placeholder || i18n.t('general.select')) }}</span>
     <span class="sn-select__caret caret"></span>
@@ -12,15 +23,17 @@
   export default {
     name: 'SelectSearch',
     props: {
+      value: { type: [String, Number] },
       options: { type: Array, default: () => [] },
       optionsUrl: { type: String },
       placeholder: { type: String },
-      searchPlaceholder: { type: String }
+      searchPlaceholder: { type: String },
+      noOptionsPlaceholder: { type: String },
+      disabled: { type: Boolean }
     },
     components: { Select },
     data() {
       return {
-        value: null,
         query: null,
         currentOptions: null,
         isOpen: false
@@ -41,32 +54,37 @@
         } else {
           this.currentOptions = this.options.filter((o) => o[1].toLowerCase().includes(this.query.toLowerCase()));
         }
+      },
+      options() {
+        this.currentOptions = this.options;
       }
     },
     computed: {
       valueLabel() {
-        let option = this.options.find((o) => o[0] === this.value);
+        let option = this.currentOptions.find((o) => o[0] === this.value);
         return option && option[1];
       }
     },
     methods: {
       blur() {
+        this.isOpen = false;
         this.$emit('blur');
       },
       change(value) {
-        this.value = value;
-        this.$emit('change', this.value);
+        this.isOpen = false;
+        this.$emit('change', value);
       },
       open() {
         this.isOpen = true;
         this.$emit('open');
       },
       close() {
+        this.query = '';
         this.isOpen = false;
         this.$emit('close');
       },
       fetchOptions() {
-        $.get(`${this.optionsUrl}?query=${this.query}`,
+        $.get(`${this.optionsUrl}?query=${this.query || ''}`,
           (data) => {
             this.currentOptions = data;
           }

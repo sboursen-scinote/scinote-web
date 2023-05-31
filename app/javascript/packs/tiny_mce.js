@@ -323,6 +323,7 @@ window.TinyMCE = (() => {
               .on('click', (event) => {
                 event.preventDefault();
                 saveAction(editor);
+                SmartAnnotation.closePopup();
               });
 
             // After save action
@@ -371,13 +372,15 @@ window.TinyMCE = (() => {
 
                 updateScrollPosition(editorForm);
                 if (options.onSaveCallback) { options.onSaveCallback($(selector).val()); }
+
+                SmartAnnotation.closePopup();
               })
               .removeClass('hidden');
 
             editor.selection.select(editor.getBody(), true);
             editor.selection.collapse(false);
 
-            SmartAnnotation.init($(editor.contentDocument.activeElement));
+            SmartAnnotation.init($(editor.contentDocument.activeElement), false, options.assignableMyModuleId);
             SmartAnnotation.preventPropagation('.atwho-user-popover');
 
             if (options.afterInitCallback) { options.afterInitCallback(); }
