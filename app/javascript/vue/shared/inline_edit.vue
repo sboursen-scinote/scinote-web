@@ -8,7 +8,7 @@
         :class="{
           'inline-edit-placeholder text-sn-grey caret-black': isBlank,
           'border-b-sn-delete-red': error,
-          'border-b-sn-science-blue': !error,
+          'border-b-sn-science-blue': !error
         }"
         v-model="newValue"
         @keydown="handleKeypress"
@@ -17,11 +17,15 @@
         @focus="setCaretAtEnd"/>
       <textarea v-else
         ref="input"
-        class="overflow-hidden leading-5 inline-block outline-none px-0 py-1 border-0 border-solid border-y w-full border-t-transparent mb-0.5"
+        class="leading-5 inline-block outline-none border-solid w-full"
         :class="{
-          'inline-edit-placeholder text-sn-grey caret-black': isBlank,
+          'border-0 inline-edit-placeholder text-sn-grey caret-black': isBlank,
           'border-sn-delete-red': error,
           'border-sn-science-blue': !error,
+          'overflow-hidden px-0 py-1 border-0 border-y border-t-transparent mb-0.5': !expandable,
+          'border-[1px] overflow-x-hidden overflow-y-auto resize-none rounded p-2': expandable,
+          'max-h-[4rem]': expandable && collapsed,
+          'max-h-[40rem]': expandable && !collapsed
         }"
         :placeholder="placeholder"
         v-model="newValue"
@@ -31,14 +35,27 @@
         @focus="setCaretAtEnd"/>
     </template>
     <div
-      v-else
+      v-else-if="singleLine"
       ref="view"
       class="grid sci-cursor-edit leading-5 border-0 py-1 outline-none border-solid border-y border-transparent"
       :class="{ 'text-sn-grey font-normal': isBlank, 'whitespace-pre-line': !singleLine }"
       @click="enableEdit($event)"
     >
-      <span :class="{'truncate': singleLine }" v-if="smartAnnotation" v-html="sa_value || placeholder" ></span>
-      <span :class="{'truncate': singleLine}" v-else>{{newValue || placeholder}}</span>
+      <span class="truncate" v-if="smartAnnotation" v-html="sa_value || placeholder" ></span>
+      <span class="truncate" v-else>{{newValue || placeholder}}</span>
+    </div>
+    <div
+      v-else
+      ref="view"
+      class="grid w-full sci-cursor-edit leading-5 border py-1 outline-none inline-block border-solid p-2 border-sn-light-grey
+             hover:border-sn-sleepy-grey rounded overflow-y-auto"
+      :class="{ 'text-sn-grey font-normal': isBlank,
+                'max-h-[4rem]': expandable && collapsed,
+                'max-h-[40rem]': expandable && !collapsed, }"
+      @click="enableEdit($event)"
+    >
+      <span v-if="smartAnnotation" v-html="sa_value || placeholder" ></span>
+      <span v-else>{{newValue || placeholder}}</span>
     </div>
 
     <div
@@ -72,7 +89,9 @@
       smartAnnotation: { type: Boolean, default: false },
       editOnload: { type: Boolean, default: false },
       defaultValue: { type: String, default: '' },
-      singleLine: { type: Boolean, default: true }
+      singleLine: { type: Boolean, default: true },
+      expandable: { type: Boolean, default: false },
+      collapsed: { type: Boolean, default: true }
     },
     data() {
       return {
@@ -93,7 +112,10 @@
     },
     watch: {
       editing() {
-        this.refreshTexareaHeight()
+        this.refreshTexareaHeight();
+      },
+      value() {
+        this.newValue = this.value || '';
       },
       newValue() {
         if (this.newValue.length === 0 && this.editing) {
@@ -241,7 +263,7 @@
             if (!this.$refs.input) return;
             this.$refs.input.style.height = this.$refs.input.scrollHeight / 2  + 'px';
 
-            this.$refs.input.style.height = this.$refs.input.scrollHeight  + 'px';
+            this.$refs.input.style.height = this.$refs.input.scrollHeight + 2  + 'px';
           });
         }
       }

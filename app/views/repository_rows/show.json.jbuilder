@@ -4,6 +4,7 @@ json.id @repository_row.id
 json.repository_name @repository.name
 json.permissions do
   json.can_export_repository_stock can_export_repository_stock?(@repository_row.repository)
+  json.can_manage_repository_rows can_manage_repository_rows?(@repository_row.repository)
 end
 json.default_columns do
   json.name @repository_row.name
@@ -15,7 +16,21 @@ end
 json.custom_columns do
   json.array! @repository_row.repository_cells do |repository_cell|
     json.merge! serialize_repository_cell_value(repository_cell, @repository.team, @repository).merge(
-      repository_cell.repository_column.as_json(only: %i(id name data_type))
+      repository_cell.repository_column.as_json(only: %i(id name data_type)).merge(
+        case repository_cell.repository_column.data_type
+        when 'RepositoryListValue'
+          { optionsURL: items_repository_repository_columns_list_column_path(@repository,
+                                                                             repository_cell.repository_column) }
+        when 'RepositoryStatusValue'
+          { optionsURL: items_repository_repository_columns_status_column_path(@repository,
+                                                                               repository_cell.repository_column) }
+        when 'RepositoryChecklistValue'
+          { optionsURL: items_repository_repository_columns_checklist_column_path(@repository,
+                                                                                  repository_cell.repository_column) }
+        else
+          { optionsURL: '' }
+        end
+      )
     )
   end
 end

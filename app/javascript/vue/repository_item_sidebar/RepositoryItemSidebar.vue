@@ -3,11 +3,25 @@
     class='bg-white overflow-auto gap-2.5 self-stretch  rounded-tl-4 rounded-bl-4 transition-transform ease-in-out transform shadow-lg'
     :class="{ 'translate-x-0 w-[565px] h-full': isShowing, 'transition-transform ease-in-out duration-400 transform translate-x-0 translate-x-full w-0': !isShowing }">
 
-    <div id="repository-item-sidebar" class="w-full h-full  py-6 px-6 bg-white flex flex-col">
+    <div id="repository-item-sidebar" class="w-full h-full py-6 px-6 bg-white flex flex-col">
 
       <div id="sticky-header-wrapper">
-        <div class="header flex w-full">
-          <h4 class="item-name my-auto truncate" :title="defaultColumns?.name">
+        <div class="header flex w-full font-semibold text-xl">
+          <inline-edit
+            v-if="permissions?.can_manage_repository_rows && !defaultColumns?.archived"
+            class="flex-grow font-semibold text-xl"
+            :value="defaultColumns?.name || ' ' /* edit mode will always activate if value is null */"
+            :characterLimit="255"
+            :characterMinLimit="0"
+            :allowBlank="false"
+            :smartAnnotation="false"
+            :attributeName="`${i18n.t('Repository')} ${i18n.t('name')}`"
+            :singleLine="true"
+            @editingEnabled="editingName = true"
+            @editingDisabled="editingName = false"
+            @update="updateName"
+          ></inline-edit>
+          <h4 v-else class="item-name my-auto truncate" :title="defaultColumns?.name">
             {{ !defaultColumns?.archived ? i18n.t('labels.archived') : '' }}
             {{ defaultColumns?.name }}
           </h4>
@@ -35,7 +49,7 @@
             <div class="item-details">
               <div class="flex flex-col gap-4">
                 <!-- REPOSITORY NAME -->
-                <div class="flex flex-col ">
+                <div class="flex flex-col">
                   <span class="inline-block font-semibold pb-[6px]">{{
                     i18n.t('repositories.item_card.default_columns.repository_name') }}</span>
                   <span class="repository-name flex text-sn-dark-grey" :title="repositoryName">
@@ -93,9 +107,10 @@
                 {{ i18n.t('repositories.item_card.custom_columns_label') }}
               </div>
               <div v-if="customColumns?.length > 0" class="flex flex-col gap-4 w-[350px] h-auto">
-                <div v-for="(column, index) in customColumns" class="flex flex-col gap-4 w-[350px] h-auto">
-                  <component :is="column.data_type" :key="index" :data_type="column.data_type" :colId="column.id"
-                    :colName="column.name" :colVal="column.value" :repositoryRowId="repositoryRowId" :permissions="permissions" />
+                <div v-for="(column, index) in customColumns" :key="column.id" class="flex flex-col gap-4 w-[350px] h-auto">
+                  <component :is="column.data_type" :key="column.id" :data_type="column.data_type" :colId="column.id"
+                    :colName="column.name" :colVal="column.value" :repositoryRowId="repositoryRowId" :permissions="permissions"
+                    :inArchivedRepository="defaultColumns?.archived" :optionsURL="column.optionsURL" @update="update" />
                   <div id="dashed-divider" :class="{ 'hidden': index === customColumns.length - 1 }"
                     class="flex h-[1px] py-0 border-dashed border-[1px] border-sn-light-grey">
                   </div>
@@ -192,6 +207,7 @@ import RepositoryDateValue from './repository_values/RepositoryDateValue.vue';
 import RepositoryDateRangeValue from './repository_values/RepositoryDateRangeValue.vue';
 import RepositoryTimeRangeValue from './repository_values/RepositoryTimeRangeValue.vue'
 import RepositoryTimeValue from './repository_values/RepositoryTimeValue.vue'
+import InlineEdit from '../shared/inline_edit.vue';
 import ScrollSpy from './repository_values/ScrollSpy.vue';
 
 export default {
@@ -210,12 +226,15 @@ export default {
     RepositoryDateRangeValue,
     RepositoryTimeRangeValue,
     RepositoryTimeValue,
+    'inline-edit': InlineEdit,
     'scroll-spy': ScrollSpy
   },
   data() {
     return {
       currentItemUrl: null,
+      updateUrl: null,
       dataLoading: false,
+      repositoryRowId: null,
       repositoryName: null,
       defaultColumns: null,
       customColumns: null,
@@ -223,7 +242,8 @@ export default {
       isShowing: false,
       assigned: 'Assigned to 3 private tasks that will not be displayed',
       barCodeSrc: null,
-      permissions: null
+      permissions: null,
+      editingName: false
     }
   },
   created() {
@@ -275,6 +295,8 @@ export default {
         url: repositoryRowUrl,
         dataType: 'json',
         success: (result) => {
+          this.repositoryRowId = result.id;
+          this.updateUrl = result.update_url;
           this.repositoryName = result.repository_name;
           this.defaultColumns = result.default_columns;
           this.customColumns = result.custom_columns;
@@ -286,6 +308,22 @@ export default {
     },
     privateModuleSize() {
       return this.assignedModules.total_assigned_size - this.assignedModules.viewable_modules.length;
+    },
+    updateName(name) {
+      this.defaultColumns.name = name;
+      this.editingName = false;
+      this.update({ 'name': name });
+    },
+    update(params) {
+      $.ajax({
+        method: 'PATCH',
+        url: this.updateUrl,
+        dataType: 'json',
+        data: {
+          id: this.id,
+          ...params,
+        },
+      });
     }
   }
 }
