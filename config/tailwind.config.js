@@ -57,6 +57,9 @@ module.exports = {
         'sn-background-passion': '#FAE1E7',
         'sn-background-turqoise': '#E3F6F7',
         'sn-background-bloo': '#E2F0FF'
+      },
+      boxShadow: {
+        tooltip: "0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08)",
       }
     }
   },

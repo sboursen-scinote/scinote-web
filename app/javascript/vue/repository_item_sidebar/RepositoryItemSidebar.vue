@@ -7,10 +7,12 @@
 
       <div id="sticky-header-wrapper" class="sticky top-0 right-0 bg-white flex z-50 flex-col h-[102px] pt-6">
         <div class="header flex w-full h-[30px]">
-          <h4 class="item-name my-auto truncate" :title="defaultColumns?.name">
-            {{ defaultColumns?.archived ? i18n.t('labels.archived') : '' }}
-            {{ defaultColumns?.name }}
-          </h4>
+          <tooltip :text="defaultColumns?.name || ''">
+            <h4 class="item-name truncate">
+                {{ defaultColumns?.archived ? i18n.t('labels.archived') : '' }}
+                {{ defaultColumns?.name }}
+            </h4>
+          </tooltip>
           <i id="close-icon" @click="toggleShowHideSidebar(currentItemUrl)"
             class="sn-icon sn-icon-close ml-auto cursor-pointer my-auto mx-0"></i>
         </div>
@@ -108,7 +110,7 @@
                 </div>
               </div>
               <div v-else class="text-sn-dark-grey font-inter text-sm font-normal leading-5">
-                {{ i18n.t('repositories.item_card.no_custom_columns_label') }}
+                {{ i18n.t('repositories.item_card.no_custom_columns') }}
               </div>
             </div>
 
@@ -212,6 +214,7 @@ import RepositoryTimeRangeValue from './repository_values/RepositoryTimeRangeVal
 import RepositoryTimeValue from './repository_values/RepositoryTimeValue.vue'
 import ScrollSpy from './repository_values/ScrollSpy.vue';
 import Reminder from './reminder.vue'
+import Tooltip from '../shared/tooltip.vue';
 
 export default {
   name: 'RepositoryItemSidebar',
@@ -230,7 +233,8 @@ export default {
     RepositoryDateRangeValue,
     RepositoryTimeRangeValue,
     RepositoryTimeValue,
-    'scroll-spy': ScrollSpy
+    'scroll-spy': ScrollSpy,
+    'tooltip': Tooltip
   },
   data() {
     return {
@@ -269,7 +273,7 @@ export default {
       const sidebar = this.$refs.wrapper;
       // Check if the clicked element is not within the sidebar and it's not another item link
       if (!sidebar.contains(event.target) && !event.target.closest('a')) {
-        this.toggleShowHideSidebar(null)
+        this.toggleShowHideSidebar(null);
       }
     },
     toggleShowHideSidebar(repositoryRowUrl, myModuleId = null) {
