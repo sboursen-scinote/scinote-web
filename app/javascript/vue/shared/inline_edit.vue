@@ -74,7 +74,11 @@
   export default {
     name: 'InlineEdit',
     props: {
-      value: { type: String, default: '' },
+      value: { type: [String, Number], default: '' },
+      type: {
+        validator: (value) => ['text', 'number'].includes(value),
+        default: 'text',
+      },
       sa_value: { type: String},
       allowBlank: { type: Boolean, default: true },
       attributeName: { type: String, required: true },
@@ -252,6 +256,7 @@
 
         if(this.error) return;
         if(!this.$refs.input) return;
+        this.validateInput();
         this.newValue = this.$refs.input.value.trim() // Fix for smart annotation
 
         this.editing = false;
@@ -262,11 +267,25 @@
         if (this.editing && !this.singleLine) {
           this.$nextTick(() => {
             if (!this.$refs.input) return;
+
+            if (this.expandable) { // Textarea have 2 rows by default. 16px is hight of one line (text normal)
+              this.$refs.input.style.height = this.$refs.input.scrollHeight - 16 + 'px';
+              return;
+            }
+
             this.$refs.input.style.height = this.$refs.input.scrollHeight / 2  + 'px';
 
             this.$refs.input.style.height = this.$refs.input.scrollHeight + 'px';
           });
         }
+      },
+      validateInput() {
+        const regexp = decimals === 0 ? /[^0-9]/g : /[^0-9.]/g;
+        const decimalsRegex = new RegExp(`^\\d*(\\.\\d{0,${decimals}})?`);
+        let value = this.value;
+        value = value.replace(regexp, '');
+        value = value.match(decimalsRegex)[0];
+        this.value = value;
       }
     }
   }
