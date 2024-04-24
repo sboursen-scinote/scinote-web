@@ -50,9 +50,9 @@
       </template>
     </GeneralDropdown>
     <div v-if="user" class="dropdown" :title="i18n.t('nav.user_profile')">
-      <div class="sci--navigation--top-menu-user btn btn-light icon-btn btn-black" data-toggle="dropdown" data-e2e="e2e-DD-topMenu-avatar">
+      <button type="button" role="button" class="sci--navigation--top-menu-user btn btn-light icon-btn btn-black" data-toggle="dropdown" data-e2e="e2e-DD-topMenu-avatar">
         <img class="avatar w-6 h-6" :src="user.avatar_url">
-      </div>
+      </button>
       <div class="dropdown-menu dropdown-menu-right rounded !p-2.5 sn-shadow-menu-sm">
         <li v-for="(item, i) in userMenu" :key="i">
           <a :href="item.url" class="!px-3 !py-2.5 rounded hover:!bg-sn-super-light-grey !text-sn-blue block">
